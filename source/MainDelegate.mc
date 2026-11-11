@@ -26,7 +26,9 @@ class MainDelegate extends WatchUi.BehaviorDelegate {
         } else if (session.isRunning()) {
             if (session.isResting()) {
                 session.armNewSet();
-            } else {
+            } else if (session.getMsSinceLastJump() >= 1500) {
+                // Ignore a wrist bump that lands right after a jump. BACK still
+                // opens the pause menu for a deliberate pause.
                 app.pauseWorkout();
             }
         } else if (session.isPaused()) {
@@ -136,9 +138,15 @@ class PauseMenuDelegate extends WatchUi.Menu2InputDelegate {
             WatchUi.popView(WatchUi.SLIDE_DOWN);
         } else if (id == :save) {
             app.stopWorkout();
+            var hasJumps = app.getSession().getJumpCount() > 0;
+            if (!hasJumps) {
+                app.discardWorkout();
+            }
             WatchUi.popView(WatchUi.SLIDE_DOWN);
-            var summary = new SummaryView();
-            WatchUi.pushView(summary, new SummaryDelegate(summary), WatchUi.SLIDE_UP);
+            if (hasJumps) {
+                var summary = new SummaryView();
+                WatchUi.pushView(summary, new SummaryDelegate(summary), WatchUi.SLIDE_UP);
+            }
         } else if (id == :discard) {
             app.discardWorkout();
             WatchUi.popView(WatchUi.SLIDE_DOWN);
@@ -173,9 +181,15 @@ class MainMenuDelegate extends WatchUi.Menu2InputDelegate {
             WatchUi.popView(WatchUi.SLIDE_DOWN);
         } else if (id == :stop) {
             app.stopWorkout();
+            var hasJumps = app.getSession().getJumpCount() > 0;
+            if (!hasJumps) {
+                app.discardWorkout();
+            }
             WatchUi.popView(WatchUi.SLIDE_DOWN);
-            var summary = new SummaryView();
-            WatchUi.pushView(summary, new SummaryDelegate(summary), WatchUi.SLIDE_UP);
+            if (hasJumps) {
+                var summary = new SummaryView();
+                WatchUi.pushView(summary, new SummaryDelegate(summary), WatchUi.SLIDE_UP);
+            }
         } else if (id == :settings) {
             WatchUi.popView(WatchUi.SLIDE_DOWN);
             var session = app.getSession();

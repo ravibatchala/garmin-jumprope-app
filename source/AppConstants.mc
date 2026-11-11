@@ -26,21 +26,6 @@ module AppConstants {
     const GRAVITY_WARMUP_TAU_MS = 230.0f;
     const GRAVITY_TAU_MS = 1313.0f;
     const SLOW_TAU_MS = 551.0f;
-    const SHAKE_GRAVITY_TAU_MS = 551.0f;
-
-    // Rest-to-work detection. A deliberate side-to-side shake produces
-    // horizontal acceleration after gravity is removed; vertical jump-like
-    // motion is ignored. Three peaks inside the window arm the next set.
-    // 250 mG is deliberately above normal walking arm swing. The field test
-    // still requires three deliberate shakes, so keep the peak count at three.
-    const SHAKE_HORIZONTAL_THRESHOLD = 250.0f;
-    const SHAKE_RELEASE_RATIO = 0.65f;
-    const SHAKE_PEAK_INTERVAL_MS = 120;
-    const SHAKE_WINDOW_MS = 2500;
-    const SHAKE_PEAKS_REQUIRED = 3;
-    const SHAKE_GRAVITY_ALPHA = 0.035f;
-    const SHAKE_BLANK_MS = 500;
-    const ARM_BLANK_MS = 250;
 
     const WEIGHT_MIN_KG = 30;
     const WEIGHT_MAX_KG = 250;

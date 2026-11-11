@@ -23,9 +23,6 @@ class SessionManager {
     private var _sets as Number = 0;
     private var _inRest as Boolean = false;
     private var _setArmed as Boolean = false;
-    private var _shakeDetector as ShakeDetector?;
-    private var _shakeIgnoreUntil as Number = 0;
-    private var _jumpIgnoreUntil as Number = 0;
     private var _lastJumpTime as Number = 0;
     private var _pausedAt as Number = 0;
     private var _sensorsOn as Boolean = false;
@@ -68,8 +65,6 @@ class SessionManager {
         _sampleRate = _getAccelSampleRate();
         _detector = new JumpDetector(settings.getThreshold());
         _detector.setSampleRate(_sampleRate);
-        _shakeDetector = new ShakeDetector();
-        _shakeDetector.setSampleRate(_sampleRate);
 
         _elapsedBefore = 0;
         _heartRate = 0;
@@ -86,8 +81,6 @@ class SessionManager {
         _sets = 0;
         _inRest = false;
         _setArmed = false;
-        _shakeIgnoreUntil = 0;
-        _jumpIgnoreUntil = 0;
         _lastJumpTime = 0;
         _pausedAt = 0;
         _sensorError = null;
@@ -171,13 +164,7 @@ class SessionManager {
             _setStartedAt += pausedFor;
         }
 
-        if (_inRest) {
-            _setArmed = false;
-            _shakeIgnoreUntil = now + AppConstants.SHAKE_BLANK_MS;
-            if (_shakeDetector != null) {
-                _shakeDetector.reset();
-            }
-        } else {
+        if (!_inRest) {
             _lastJumpTime = now;
             if (_detector != null) {
                 if (_setArmed) {
@@ -195,7 +182,7 @@ class SessionManager {
         WatchUi.requestUpdate();
     }
 
-    // Arm the next set after a rest. Called by a deliberate shake or by DOWN.
+    // Arm the next set after a rest. Called by START/SELECT or DOWN.
     public function armNewSet() as Boolean {
         if (_state != AppConstants.STATE_RUNNING || !_inRest || _sets == 0) {
             return false;
@@ -212,11 +199,6 @@ class SessionManager {
         if (_detector != null) {
             _detector.rebase();
         }
-        if (_shakeDetector != null) {
-            _shakeDetector.reset();
-        }
-        _shakeIgnoreUntil = 0;
-        _jumpIgnoreUntil = now + AppConstants.ARM_BLANK_MS;
         _vibrate(120);
         WatchUi.requestUpdate();
         return true;
@@ -260,6 +242,13 @@ class SessionManager {
     public function save() as Boolean {
         _finalizeCurrentSet(System.getTimer());
 
+        if (getJumpCount() == 0) {
+            // Starting and immediately finishing should not create an empty
+            // activity in Garmin Connect.
+            discard();
+            return true;
+        }
+
         if (_recorder == null) {
             _saved = true;
             _recordBest();
@@ -297,7 +286,6 @@ class SessionManager {
             _recorder = null;
         }
         _detector = null;
-        _shakeDetector = null;
         _settings = null;
         _state = AppConstants.STATE_IDLE;
         _startedAt = 0;
@@ -317,8 +305,6 @@ class SessionManager {
         _sets = 0;
         _inRest = false;
         _setArmed = false;
-        _shakeIgnoreUntil = 0;
-        _jumpIgnoreUntil = 0;
         _lastJumpTime = 0;
         _pausedAt = 0;
         _sensorError = null;
@@ -366,15 +352,8 @@ class SessionManager {
             return;
         }
 
-        try {
-            var info = Sensor.getInfo();
-            if (info != null && info.heartRate != null) {
-                _updateHeartRate(info.heartRate as Number);
-            }
-        } catch (e) {
-            System.println("Sensor info failed: " + e.getErrorMessage());
-        }
-
+        // Heart rate comes from the 1 Hz sensor event (onSensorInfo). Reading
+        // Sensor.getInfo() here as well would count every sample twice.
         _checkRestTimeout();
         var cadence = getCadence();
         if (cadence > _peakCadence) {
@@ -404,20 +383,8 @@ class SessionManager {
         var timestamps = accel.timestamp as Array<Numeric>?;
 
         if (_inRest) {
-            // Never feed the jump detector while resting. The rest vibration
-            // and small arm movements must not create jumps or start/stop
-            // cycles. Only a deliberate shake can arm the next set here; DOWN
-            // is handled by the input delegate.
-            var shake = _shakeDetector;
-            if (shake != null && System.getTimer() >= _shakeIgnoreUntil) {
-                if (shake.processSamples(xs, ys, zs, timestamps)) {
-                    armNewSet();
-                }
-            }
-            return;
-        }
-
-        if (System.getTimer() < _jumpIgnoreUntil) {
+            // Rest lock: never feed the jump detector while resting. The user
+            // arms the next set explicitly with START/SELECT or DOWN.
             return;
         }
 
@@ -427,6 +394,10 @@ class SessionManager {
         if (after > before) {
             _onJumpDetected(after, before);
         }
+
+        // Rest detection must not depend on the main view being visible. A
+        // menu or a dimmed screen would otherwise stop the rest clock.
+        _checkRestTimeout();
     }
 
     public function onSensorInfo(info as Sensor.Info) as Void {
@@ -504,6 +475,14 @@ class SessionManager {
 
     public function getLastSetDurationMs() as Number {
         return _lastSetDurationMs;
+    }
+
+    // Used to keep a wrist bump from pausing the workout right after a jump.
+    public function getMsSinceLastJump() as Number {
+        if (_lastJumpTime <= 0) {
+            return 999999;
+        }
+        return System.getTimer() - _lastJumpTime;
     }
 
     public function getSetCount() as Number {
@@ -783,13 +762,7 @@ class SessionManager {
             return;
         }
         if (_state == AppConstants.STATE_RUNNING) {
-            if (_inRest) {
-                _setArmed = false;
-                _shakeIgnoreUntil = System.getTimer() + AppConstants.SHAKE_BLANK_MS;
-                if (_shakeDetector != null) {
-                    _shakeDetector.reset();
-                }
-            } else {
+            if (!_inRest) {
                 _lastJumpTime = System.getTimer();
                 if (_detector != null) {
                     if (_setArmed) {
@@ -977,10 +950,6 @@ class SessionManager {
         _restBaseMs = _restTotalMs;
         _restStartedAt = now;
         _restCount++;
-        _shakeIgnoreUntil = now + AppConstants.SHAKE_BLANK_MS;
-        if (_shakeDetector != null) {
-            _shakeDetector.reset();
-        }
         if (vibrate) {
             _vibrateRestStart();
         }
@@ -1008,6 +977,9 @@ class SessionManager {
             _setDurations.add(duration);
             _lastSetCount = count;
             _lastSetDurationMs = duration;
+            if (_recorder != null) {
+                _recorder.addSetLap(count);
+            }
         }
         _setStartedAt = 0;
     }

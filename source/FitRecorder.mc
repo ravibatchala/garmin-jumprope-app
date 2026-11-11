@@ -114,6 +114,23 @@ class FitRecorder {
         _setNumberField(_recordCadenceField, cadence);
     }
 
+    // Close the lap for a finished set. The lap field carries that set's jump
+    // count so Connect shows one row per set instead of one total.
+    public function addSetLap(jumps as Number) as Void {
+        var session = _session;
+        if (session == null) {
+            return;
+        }
+        _setNumberField(_lapJumpField, jumps);
+        if (_lapJumpField != null) {
+            try {
+                session.addLap();
+            } catch (e) {
+                System.println("FIT addLap failed: " + e.getErrorMessage());
+            }
+        }
+    }
+
     public function finish(jumps as Number, bestStreak as Number, avgCadence as Number, sets as Number, avgHr as Number, maxHr as Number) as Boolean {
         var session = _session;
         if (session == null) {
@@ -126,18 +143,6 @@ class FitRecorder {
         _setNumberField(_setsField, sets);
         _setNumberField(_avgHrField, avgHr);
         _setNumberField(_maxHrField, maxHr);
-        _setNumberField(_recordCadenceField, avgCadence);
-        _setNumberField(_lapJumpField, jumps);
-
-        // Flush the lap field before stopping. If the device/SDK rejects the
-        // nativeNum descriptor, _lapJumpField is null and this is a no-op.
-        if (_lapJumpField != null) {
-            try {
-                session.addLap();
-            } catch (e) {
-                System.println("FIT addLap failed: " + e.getErrorMessage());
-            }
-        }
 
         if (_active) {
             _active = false;
@@ -226,7 +231,7 @@ class FitRecorder {
 
         // Garmin Connect may read the native total_cycles value from lap data
         // even when the session-level developer field is ignored.
-        _lapJumpField = _createNumberField("Jump Count", 7, FitContributor.DATA_TYPE_UINT32, {
+        _lapJumpField = _createNumberField("Set Jumps", 7, FitContributor.DATA_TYPE_UINT32, {
             :mesgType => FitContributor.MESG_TYPE_LAP,
             :units => "jumps",
             :nativeNum => 10

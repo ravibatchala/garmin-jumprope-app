@@ -122,8 +122,7 @@ class MainView extends WatchUi.View {
             var lastSet = session.getLastSetCount().toString();
             var restLine = "SET " + setNumber + " - " + lastSet;
             var restTimer = "REST " + _formatTime(session.getCurrentRestElapsedMs());
-            var hint = session.getRestCount() == 1 ? "SHAKE SIDE 3x  START" : "SHAKE 3x  START";
-            var bottom = hint;
+            var bottom = "START / DOWN";
 
             if (settings.bigNumberCurrent) {
                 restLine += "  TOT " + session.getJumpCount().toString();
@@ -135,13 +134,6 @@ class MainView extends WatchUi.View {
             if (dc.getTextWidthInPixels(restLine, Graphics.FONT_XTINY) > (w - 12)) {
                 restLine = "SET " + setNumber + " - " + lastSet + "  R " +
                     _formatTime(session.getCurrentRestElapsedMs());
-            }
-            if (dc.getTextWidthInPixels(bottom, Graphics.FONT_XTINY) > (w - 12)) {
-                if (session.getRestCount() == 1) {
-                    bottom = "SHAKE 3x  START";
-                } else {
-                    bottom = "SHAKE/START/DOWN";
-                }
             }
             if (dc.getTextWidthInPixels(bottom, Graphics.FONT_XTINY) > (w - 12)) {
                 bottom = "START";

@@ -17,7 +17,7 @@ Screenshots from the Instinct E 40 mm simulator.
 - Wrist-based vertical jump detection using the accelerometer.
 - Adaptive detection threshold with five sensitivity levels.
 - Automatic set completion after a configurable rest delay.
-- Rest lock with explicit arming: START/Enter/GPS, DOWN, or three side-to-side shakes.
+- Rest lock with explicit arming: START/Enter/GPS or DOWN.
 - Live heart rate, cadence in jumps per minute (JPM), and estimated calories.
 - Total or current-set count as the large display value.
 - Current streak, best streak, and all-time best records.
@@ -89,12 +89,11 @@ build/JumpRope.prg
 
 | Button | Action |
 | --- | --- |
-| **Enter / GPS** | Start a workout. Pause while running. Arm the next set during rest. Save from the summary. |
+| **Enter / GPS** | Start a workout. Pause while running (ignores a press within 1.5 s of a jump). Arm the next set during rest. Save from the summary. |
 | **Escape / BACK** | Pause while running. Open the pause menu while paused. Save and return from the summary. Exit from idle. Cancel from a picker or calibration. |
 | **UP / MENU** | Open the main menu. Open Discard/Cancel on the summary. Increase a picker value. |
 | **DOWN** | Navigate menus and pages. Arm the next set during rest. Decrease a picker value. |
 | **UP / DOWN on summary** | Switch between Summary, Details, and History. Scroll the history list. |
-| **Three side-to-side shakes** | Arm the next set during rest. |
 
 The first real jump after arming starts the next set. Arming does not add a set or a jump.
 
@@ -119,7 +118,7 @@ When no jump is detected for the configured rest delay, the current set is final
 
 The middle metric uses `SET AVG` when it fits and falls back to `AVG` on the 166 px display. The value is the last completed set’s average cadence in jumps per minute, not heart rate. If no valid last-set cadence exists, the value is `--`.
 
-Rest does not resume automatically. Arm the next set by pressing START/Enter/GPS, pressing DOWN, or shaking the watch side-to-side three times.
+Rest does not resume automatically. Arm the next set by pressing START/Enter/GPS or DOWN.
 
 ### Summary
 
@@ -176,7 +175,7 @@ Diagnostics displays:
 2. If enabled, the start countdown runs before sensors start.
 3. Jump normally. Vertical jump peaks increment the count.
 4. After the rest delay with no jump, the set is finalized and the app enters rest.
-5. Arm the next set with three side-to-side shakes, START/Enter/GPS, or DOWN.
+5. Arm the next set with START/Enter/GPS or DOWN.
 6. The next real jump starts the set and increments the count.
 7. Press BACK while running to pause. The pause menu provides Resume, Save & Finish, and Discard.
 8. Save from the summary with Enter/Escape, or discard from the summary menu.
@@ -261,21 +260,18 @@ Heart rate and calorie values are estimates and are not medical measurements.
 ./tools/run.sh
 ```
 
-`./tools/run.sh` opens the app in the Connect IQ simulator. The simulator cannot inject real wrist motion, so jump detection, shake arming, optical heart rate, vibration, and saved activity output require a physical watch.
+`./tools/run.sh` opens the app in the Connect IQ simulator. The simulator cannot inject real wrist motion, so jump detection, optical heart rate, vibration, and saved activity output require a physical watch.
 
 Current unit test coverage:
 
 - Synthetic jump counting.
 - Noise rejection.
 - Cadence reset across rest gaps.
-- Three-shake rest arming.
-- Shallow-release and wide-window shake detection.
-- Vertical-motion and noise rejection in the rest detector.
 - Target preset validation.
-- FIT session creation and saving.
+- FIT session creation, per-set laps, and saving.
 - Workout start, pause, resume, stop, and save lifecycle.
 
-The suite passes 12 of 12 tests.
+The suite passes 7 of 7 tests.
 
 ## Troubleshooting
 
@@ -294,8 +290,7 @@ The suite passes 12 of 12 tests.
 
 ### Rest does not arm
 
-- Use three deliberate side-to-side shakes, not vertical shakes.
-- Press START/Enter/GPS or DOWN.
+- Press START/Enter/GPS or DOWN to arm the next set.
 - Walking and ordinary arm swing are ignored by design.
 
 ### `SAVE FAILED`
