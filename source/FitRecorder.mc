@@ -47,28 +47,46 @@ class FitRecorder {
     }
 
     private function _createSession() as ActivityRecording.Session? {
+        // Garmin's own Jump Rope app records as Training > Cardio Training
+        // with the profile name "Jump Rope". Recording sport 84 makes the
+        // watch firmware write its own total_cycles, which Garmin Connect
+        // shows as Total Reps and which drifts away from this app's count.
         try {
-            // FIT sport 84 is "jump_rope". Connect IQ does not expose a
-            // SPORT_JUMP_ROPE constant, so this is the documented raw value.
             return ActivityRecording.createSession({
                 :name => "Jump Rope",
-                :sport => 84 as Activity.Sport,
-                :subSport => Activity.SUB_SPORT_GENERIC
+                :sport => Activity.SPORT_TRAINING,
+                :subSport => Activity.SUB_SPORT_CARDIO_TRAINING
             });
         } catch (e) {
-            System.println("Jump Rope sport rejected: " + e.getErrorMessage());
+            System.println("Cardio session rejected: " + e.getErrorMessage());
         }
 
+        // If the cardio sub-sport is rejected, HIIT is the next best choice:
+        // it also avoids the watch's jump-rope rep counter.
         try {
-            var fallback = ActivityRecording.createSession({
+            var hiit = ActivityRecording.createSession({
                 :name => "Jump Rope",
                 :sport => Activity.SPORT_HIIT,
                 :subSport => Activity.SUB_SPORT_GENERIC
             });
             _fallbackSport = true;
-            return fallback;
+            return hiit;
         } catch (e2) {
-            System.println("FIT session failed: " + e2.getErrorMessage());
+            System.println("HIIT session rejected: " + e2.getErrorMessage());
+        }
+
+        // Last resort: keep the jump-rope activity type, even though the
+        // native rep counter may come back with it.
+        try {
+            var jumpRope = ActivityRecording.createSession({
+                :name => "Jump Rope",
+                :sport => 84 as Activity.Sport,
+                :subSport => Activity.SUB_SPORT_GENERIC
+            });
+            _fallbackSport = true;
+            return jumpRope;
+        } catch (e3) {
+            System.println("Jump Rope sport rejected: " + e3.getErrorMessage());
         }
         return null;
     }

@@ -1,0 +1,59 @@
+<resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <fitContributions>
+        <fitField id="0"
+            displayInActivitySummary="true"
+            sortOrder="0"
+            precision="0"
+            dataLabel="@Strings.jump_count_label"
+            unitLabel="@Strings.jump_count_units" />
+
+        <fitField id="1"
+            displayInActivitySummary="true"
+            sortOrder="1"
+            precision="0"
+            dataLabel="@Strings.best_streak_label"
+            unitLabel="@Strings.jump_count_units" />
+
+        <fitField id="2"
+            displayInActivitySummary="true"
+            sortOrder="2"
+            precision="0"
+            dataLabel="@Strings.avg_cadence_label"
+            unitLabel="@Strings.cadence_units" />
+
+        <fitField id="3"
+            displayInActivitySummary="true"
+            sortOrder="3"
+            precision="0"
+            dataLabel="@Strings.sets_label"
+            unitLabel="@Strings.sets_units" />
+
+        <fitField id="4"
+            sortOrder="4"
+            precision="0"
+            dataLabel="@Strings.avg_hr_label"
+            unitLabel="@Strings.hr_units" />
+
+        <fitField id="5"
+            sortOrder="5"
+            precision="0"
+            dataLabel="@Strings.max_hr_label"
+            unitLabel="@Strings.hr_units" />
+
+        <fitField id="6"
+            displayInChart="true"
+            sortOrder="6"
+            precision="0"
+            chartTitle="@Strings.cadence_chart_label"
+            dataLabel="@Strings.cadence_label"
+            unitLabel="@Strings.cadence_units"
+            fillColor="#FF8C00" />
+
+        <fitField id="7"
+            displayInActivityLaps="true"
+            sortOrder="7"
+            precision="0"
+            dataLabel="@Strings.set_jumps_label"
+            unitLabel="@Strings.jump_count_units" />
+    </fitContributions>
+</resources>

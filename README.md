@@ -1,6 +1,6 @@
 # Jump Rope
 
-A Connect IQ watch app for the Garmin Instinct E 40 mm that counts vertical jumps from wrist motion, tracks sets and rest periods, and records a **Jump Rope** activity.
+A Connect IQ watch app for the Garmin Instinct E 40 mm that counts vertical jumps from wrist motion, tracks sets and rest periods, and records the workout as a Cardio Training activity named **Jump Rope**.
 
 The app runs entirely on the watch. It does not require a phone connection or network access during a workout.
 
@@ -233,14 +233,16 @@ Rest arming uses horizontal acceleration after gravity removal.
 
 ## FIT recording
 
-When activity saving is enabled, the app records:
+When activity saving is enabled, the app records a Training > Cardio Training activity with the profile name **Jump Rope**. This is the same shape Garmin's own Jump Rope app uses, and it keeps the watch firmware from adding a separate rep counter.
 
-- Sport `84` (`jump_rope`), with a HIIT fallback.
 - Session fields: Jump Count, Best Streak, Avg Cadence, Sets, Avg HR, Max HR.
-- Record field: Cadence.
-- Lap field: Jump Count, with an attempted `total_cycles` mapping.
+- Record field: Cadence, shown as a jumps-per-minute chart.
+- Lap field: Set Jumps, with one lap for each completed set.
+- Fallbacks: HIIT, then sport `84` (`jump_rope`), if the firmware rejects cardio training.
 
-Garmin Connect may display the activity as **Jump Rope**. Custom fields remain in the FIT file even when Garmin Connect does not map them to native tiles. Native Total Reps mapping requires verification on a physical watch.
+The labels and display options for those fields live in `resources/fitfields.xml`. Garmin Connect reads that metadata from apps installed through the Connect IQ Store, so a sideloaded build still writes every field to the FIT file but Connect will not show them. The watch screen always shows the app's own count.
+
+Connect lists the workout as Cardio Training with the name **Jump Rope**. Changing the activity type to Jump Rope in Connect can hide the app's custom fields.
 
 ## Privacy
 
@@ -261,6 +263,16 @@ Heart rate and calorie values are estimates and are not medical measurements.
 ```
 
 `./tools/run.sh` opens the app in the Connect IQ simulator. The simulator cannot inject real wrist motion, so jump detection, optical heart rate, vibration, and saved activity output require a physical watch.
+
+To build the package for the Connect IQ Store:
+
+```sh
+source tools/env.sh
+"$SDK/bin/monkeyc" -f monkey.jungle -o build/JumpRope.iq \
+    -y developer_key.der -d "$DEVICE" --typecheck 2 -e
+```
+
+Upload `build/JumpRope.iq` from the Connect IQ developer dashboard. Keep the same app ID and developer key for updates.
 
 Current unit test coverage:
 
@@ -310,9 +322,15 @@ The suite passes 8 of 8 tests.
 
 ### Garmin Connect shows a different count
 
-Garmin Connect's Total Reps is the watch's native `total_cycles`, not the app's Jump Count. On the Instinct E the native number is produced by the device and can differ from the app count. In two field tests the app recorded 102 and 104 jumps, while the native total was 99 and 68. The app's own count is the Jump Count session field, and each set's count is in the Set Jumps lap field.
+The app records as Cardio Training on purpose. Recording sport 84 made the watch firmware write its own `total_cycles`, which Connect displayed as Total Reps. That was the watch's counter, not the app's, and in two field tests it differed from the app by up to 36 jumps.
 
-Developer fields normally appear in Garmin Connect only when the app is installed from the Connect IQ Store. With a sideloaded build, Connect may show only the native total. To check detection accuracy, compare the watch screen or the FIT fields, not Connect's Total Reps.
+With the current build Connect uses the app's **Jump Count** and **Set Jumps** fields once the app is installed from the Connect IQ Store. A private beta is enough. Sideloaded builds do not get the field display metadata, so Connect may show no jump count for those activities; check the watch screen or the FIT file instead.
+
+To install a beta:
+
+1. Upload the built `.iq` as a testing app in the Connect IQ developer dashboard.
+2. Install it on the watch through the Connect IQ phone app.
+3. Record a workout and confirm that Connect shows Jump Count and Set Jumps.
 
 ## License
 

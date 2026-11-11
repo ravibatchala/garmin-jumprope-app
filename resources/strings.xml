@@ -1,3 +1,18 @@
 <resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <string id="AppName">Jump Rope</string>
+
+    <!-- Labels for the FIT fields that Garmin Connect can display. -->
+    <string id="jump_count_label">Jump Count</string>
+    <string id="jump_count_units">jumps</string>
+    <string id="best_streak_label">Best Streak</string>
+    <string id="avg_cadence_label">Avg Cadence</string>
+    <string id="cadence_label">Cadence</string>
+    <string id="cadence_chart_label">Jumps per Minute</string>
+    <string id="cadence_units">jpm</string>
+    <string id="sets_label">Sets</string>
+    <string id="sets_units">sets</string>
+    <string id="set_jumps_label">Set Jumps</string>
+    <string id="avg_hr_label">Avg HR</string>
+    <string id="max_hr_label">Max HR</string>
+    <string id="hr_units">bpm</string>
 </resources>
