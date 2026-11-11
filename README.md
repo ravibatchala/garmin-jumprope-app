@@ -308,9 +308,11 @@ The suite passes 8 of 8 tests.
 - Confirm the watch is an Instinct E 40 mm.
 - Reboot the watch.
 
-### Garmin Connect shows zero Total Reps
+### Garmin Connect shows a different count
 
-The app writes a custom Jump Count field and attempts a native `total_cycles` mapping, but Garmin Connect may ignore it. Check the FIT file and custom fields before concluding the count was lost.
+Garmin Connect's Total Reps is the watch's native `total_cycles`, not the app's Jump Count. On the Instinct E the native number is produced by the device and can differ from the app count. In two field tests the app recorded 102 and 104 jumps, while the native total was 99 and 68. The app's own count is the Jump Count session field, and each set's count is in the Set Jumps lap field.
+
+Developer fields normally appear in Garmin Connect only when the app is installed from the Connect IQ Store. With a sideloaded build, Connect may show only the native total. To check detection accuracy, compare the watch screen or the FIT fields, not Connect's Total Reps.
 
 ## License
 
