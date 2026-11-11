@@ -48,9 +48,8 @@ class FitRecorder {
 
     private function _createSession() as ActivityRecording.Session? {
         // Sport 84 is "jump_rope". It gives the activity the Jump Rope type,
-        // icon and badge credit in Garmin Connect. Cardio training made the
-        // watch write total_cycles as strides, so its native count came out
-        // at half the app's jump count.
+        // icon and badge credit in Garmin Connect. The watch still writes its
+        // own total_cycles counter for this sport, which is not a jump count.
         try {
             return ActivityRecording.createSession({
                 :name => "Jump Rope",
@@ -215,10 +214,9 @@ class FitRecorder {
         if (_session == null) {
             return;
         }
-        _jumpField = _createNumberField("Jump Count", 0, FitContributor.DATA_TYPE_UINT32, {
+        _jumpField = _createNumberField("Jumps", 0, FitContributor.DATA_TYPE_UINT32, {
             :mesgType => FitContributor.MESG_TYPE_SESSION,
-            :units => "jumps",
-            :nativeNum => 10
+            :units => "jumps"
         });
         _bestStreakField = _createNumberField("Best Streak", 1, FitContributor.DATA_TYPE_UINT16, {
             :mesgType => FitContributor.MESG_TYPE_SESSION,
@@ -247,12 +245,9 @@ class FitRecorder {
         };
         _recordCadenceField = _createNumberField("Cadence", 6, FitContributor.DATA_TYPE_UINT16, recordOptions);
 
-        // Garmin Connect may read the native total_cycles value from lap data
-        // even when the session-level developer field is ignored.
-        _lapJumpField = _createNumberField("Set Jumps", 7, FitContributor.DATA_TYPE_UINT32, {
+        _lapJumpField = _createNumberField("Jumps (set)", 7, FitContributor.DATA_TYPE_UINT32, {
             :mesgType => FitContributor.MESG_TYPE_LAP,
-            :units => "jumps",
-            :nativeNum => 10
+            :units => "jumps"
         });
     }
 

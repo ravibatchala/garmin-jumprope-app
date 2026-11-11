@@ -2,7 +2,7 @@
     <string id="AppName">Jump Rope</string>
 
     <!-- Labels for the FIT fields that Garmin Connect can display. -->
-    <string id="jump_count_label">Jump Count</string>
+    <string id="jump_count_label">Jumps</string>
     <string id="jump_count_units">jumps</string>
     <string id="best_streak_label">Best Streak</string>
     <string id="avg_cadence_label">Avg Cadence</string>
@@ -11,7 +11,7 @@
     <string id="cadence_units">jpm</string>
     <string id="sets_label">Sets</string>
     <string id="sets_units">sets</string>
-    <string id="set_jumps_label">Set Jumps</string>
+    <string id="set_jumps_label">Jumps (set)</string>
     <string id="avg_hr_label">Avg HR</string>
     <string id="max_hr_label">Max HR</string>
     <string id="hr_units">bpm</string>

@@ -235,12 +235,12 @@ Rest arming uses horizontal acceleration after gravity removal.
 
 When activity saving is enabled, the app records a **Jump Rope** activity (FIT sport `84`), so the workout gets the Jump Rope type, icon, and badge credit in Garmin Connect.
 
-- Session fields: Jump Count, Best Streak, Avg Cadence, Sets, Avg HR, Max HR.
+- Session fields: Jumps, Best Streak, Avg Cadence, Sets, Avg HR, Max HR.
 - Record field: Cadence, shown as a jumps-per-minute chart.
-- Lap field: Set Jumps, with one lap for each completed set.
+- Lap field: Jumps (set), with one lap for each completed set.
 - Fallbacks: Cardio Training, then HIIT, if the firmware rejects sport `84`.
 
-The watch also writes its own `total_cycles` value for this sport. That counter is not a jump count: it runs for the whole activity, including rest, and it counts a cycle as two footfalls. Garmin Connect labels it Total Reps. In two field tests it read 74 for 103 jumps and 111 for 202 jumps. The app writes Jump Count at session level and Set Jumps for each lap.
+The watch also writes its own `total_cycles` value for this sport. That counter is not a jump count: it runs for the whole activity, including rest, and it counts a cycle as two footfalls. Garmin Connect labels it Total Reps and reads it instead of the app's fields, which a Connect IQ app has no way to change. In two field tests it read 74 for 103 jumps and 111 for 202 jumps, so the two numbers will not always agree. The app's own numbers are the Jumps field for the session and Jumps (set) for each lap; those are the ones the detector produced.
 
 The app uses the watch's own calorie count when the device provides it, so the calorie number on the watch matches the activity's `total_calories` in Connect. If the device does not report calories, the app falls back to its MET estimate.
 
@@ -324,10 +324,10 @@ The suite passes 8 of 8 tests.
 
 ### Garmin Connect shows a different count
 
-A Jump Rope activity has two counters: the watch's native `total_cycles` and the app's Jump Count.
+A Jump Rope activity has two counters: the watch's native `total_cycles` and the app's Jumps.
 
 - `total_cycles` is the watch's cycle counter, not a jump counter. It runs for the whole activity, including rest, and it counts a cycle as two footfalls. Connect shows this value as **Total Reps**.
-- Jump Count is the app's own count, written at session level. Set Jumps is written per lap.
+- Jumps is the app's own count, written at session level. Jumps (set) is written for each lap.
 
 Two field tests, both recorded with sport `84`:
 
@@ -340,7 +340,9 @@ In the first test the two sets added up to 50 native cycles, but the session had
 
 Halving the app count would not fix this. It would report half the real jumps, and the native counter would still keep counting while you rest. The detector's number is the jump count.
 
-The app marks Jump Count as the session's equivalent counter in its FIT metadata. Garmin Connect only reads that metadata for apps installed from the Connect IQ Store, so a private beta install is needed to see **Jump Count** in Connect. A sideloaded build writes the field to the FIT file but Connect does not display it; check the watch summary or the FIT file instead.
+There is no fix from inside the app. The firmware writes `total_cycles` into the session, Connect reads that instead of the developer fields, and Connect IQ has no API for writing session fields or `set` messages. Treat the watch's Jumps count as the real one; Connect's Total Reps is the watch's own estimate.
+
+The Jumps field appears in Connect only for apps installed from the Connect IQ Store. A sideloaded build writes it to the FIT file but Connect does not list it, so use the watch summary or the FIT file in that case.
 
 ## License
 
