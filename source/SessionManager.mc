@@ -23,6 +23,7 @@ class SessionManager {
     private var _sets as Number = 0;
     private var _inRest as Boolean = false;
     private var _setArmed as Boolean = false;
+    private var _armAt as Number = 0;
     private var _lastJumpTime as Number = 0;
     private var _pausedAt as Number = 0;
     private var _sensorsOn as Boolean = false;
@@ -81,6 +82,7 @@ class SessionManager {
         _sets = 0;
         _inRest = false;
         _setArmed = false;
+        _armAt = 0;
         _lastJumpTime = 0;
         _pausedAt = 0;
         _sensorError = null;
@@ -166,6 +168,7 @@ class SessionManager {
 
         if (!_inRest) {
             _lastJumpTime = now;
+            _armAt = now;
             if (_detector != null) {
                 if (_setArmed) {
                     _detector.rebase();
@@ -196,6 +199,7 @@ class SessionManager {
         // jump of the new set arrives.
         _setStartCount = getJumpCount();
         _lastJumpTime = now;
+        _armAt = now;
         if (_detector != null) {
             _detector.rebase();
         }
@@ -305,6 +309,7 @@ class SessionManager {
         _sets = 0;
         _inRest = false;
         _setArmed = false;
+        _armAt = 0;
         _lastJumpTime = 0;
         _pausedAt = 0;
         _sensorError = null;
@@ -389,7 +394,39 @@ class SessionManager {
         }
 
         var before = detector.getCount();
-        detector.processSamples(xs, ys, zs, timestamps);
+        if (_armAt > 0) {
+            // The batch that arrives after arming can still contain samples
+            // from before the button press. Work out how many samples fall
+            // after the blank period and drop the rest, without relying on
+            // the sensor clock matching System.getTimer().
+            var n = xs.size();
+            if (ys.size() < n) {
+                n = ys.size();
+            }
+            if (zs.size() < n) {
+                n = zs.size();
+            }
+
+            var startIndex = n;
+            var elapsed = System.getTimer() - _armAt - AppConstants.ARM_BLANK_MS;
+            if (elapsed > 0) {
+                var interval = 1000 / _sampleRate;
+                if (interval < 1) {
+                    interval = 1;
+                }
+                startIndex = n - (elapsed / interval);
+                if (startIndex < 0) {
+                    startIndex = 0;
+                }
+                if (startIndex > n) {
+                    startIndex = n;
+                }
+            }
+            _armAt = 0;
+            detector.processSamplesFrom(xs, ys, zs, timestamps, startIndex);
+        } else {
+            detector.processSamples(xs, ys, zs, timestamps);
+        }
         var after = detector.getCount();
         if (after > before) {
             _onJumpDetected(after, before);
@@ -764,6 +801,7 @@ class SessionManager {
         if (_state == AppConstants.STATE_RUNNING) {
             if (!_inRest) {
                 _lastJumpTime = System.getTimer();
+                _armAt = _lastJumpTime;
                 if (_detector != null) {
                     if (_setArmed) {
                         _detector.rebase();

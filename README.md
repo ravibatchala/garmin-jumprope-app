@@ -270,8 +270,9 @@ Current unit test coverage:
 - Target preset validation.
 - FIT session creation, per-set laps, and saving.
 - Workout start, pause, resume, stop, and save lifecycle.
+- Arm-batch skipping so the rest-to-set button press is not counted.
 
-The suite passes 7 of 7 tests.
+The suite passes 8 of 8 tests.
 
 ## Troubleshooting
 

@@ -67,6 +67,13 @@ class JumpDetector {
     }
 
     public function processSamples(xs as Array<Numeric>, ys as Array<Numeric>, zs as Array<Numeric>, timestamps as Array<Numeric>?) as Void {
+        processSamplesFrom(xs, ys, zs, timestamps, 0);
+    }
+
+    // Processes a batch starting at startIndex. Used right after arming to
+    // skip the samples that arrived before the arm point, so the button press
+    // and the last moments of rest cannot be counted as jumps.
+    public function processSamplesFrom(xs as Array<Numeric>, ys as Array<Numeric>, zs as Array<Numeric>, timestamps as Array<Numeric>?, startIndex as Number) as Void {
         var n = xs.size();
         if (ys.size() < n) {
             n = ys.size();
@@ -75,9 +82,16 @@ class JumpDetector {
             n = zs.size();
         }
 
+        if (startIndex < 0) {
+            startIndex = 0;
+        }
+        if (startIndex > n) {
+            startIndex = n;
+        }
+
         var interval = 1000 / _sampleRate;
         var fallbackStart = System.getTimer();
-        for (var i = 0; i < n; i++) {
+        for (var i = startIndex; i < n; i++) {
             var t;
             if (timestamps != null && i < timestamps.size()) {
                 t = (timestamps[i] as Number);

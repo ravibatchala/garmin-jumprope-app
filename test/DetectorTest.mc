@@ -54,6 +54,58 @@ function testJumpDetectorCountsSyntheticJumps(logger as Test.Logger) as Boolean 
 }
 
 (:test)
+function testProcessSamplesFromSkipsTheArmBatch(logger as Test.Logger) as Boolean {
+    var xs = new Array<Numeric>[0];
+    var ys = new Array<Numeric>[0];
+    var zs = new Array<Numeric>[0];
+    var ts = new Array<Numeric>[0];
+
+    var t = 1000;
+    for (var i = 0; i < 100; i++) {
+        xs.add(1000.0);
+        ys.add(0.0);
+        zs.add(0.0);
+        ts.add(t);
+        t += 20;
+    }
+    for (var jump = 0; jump < 10; jump++) {
+        for (var i = 0; i < 13; i++) {
+            var amplitude = 420.0 * Math.sin((Math.PI * i) / 12.0);
+            xs.add(1000.0 + amplitude);
+            ys.add(0.0);
+            zs.add(0.0);
+            ts.add(t);
+            t += 20;
+        }
+        for (var i = 0; i < 17; i++) {
+            xs.add(1000.0);
+            ys.add(0.0);
+            zs.add(0.0);
+            ts.add(t);
+            t += 20;
+        }
+    }
+
+    // Starting at the end of the batch must process nothing, even though the
+    // same samples count as ten jumps when processed from the beginning.
+    var skipped = new JumpDetector(200.0f);
+    skipped.processSamplesFrom(xs, ys, zs, ts, xs.size());
+    logger.debug("Skipped batch count: " + skipped.getCount().toString());
+    Test.assertEqual(skipped.getCount(), 0);
+
+    var detector = new JumpDetector(200.0f);
+    detector.processSamplesFrom(xs, ys, zs, ts, 0);
+    logger.debug("Full batch count: " + detector.getCount().toString());
+    Test.assertEqual(detector.getCount(), 10);
+
+    // Out-of-range indexes clamp instead of throwing.
+    var clamped = new JumpDetector(200.0f);
+    clamped.processSamplesFrom(xs, ys, zs, ts, xs.size() + 100);
+    Test.assertEqual(clamped.getCount(), 0);
+    return true;
+}
+
+(:test)
 function testCadenceResetsAfterGap(logger as Test.Logger) as Boolean {
     var detector = new JumpDetector(200.0f);
     var xs = new Array<Numeric>[0];

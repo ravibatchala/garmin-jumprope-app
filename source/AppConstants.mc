@@ -27,6 +27,9 @@ module AppConstants {
     const GRAVITY_TAU_MS = 1313.0f;
     const SLOW_TAU_MS = 551.0f;
 
+    // Ignore the movement that pressed the button when a set is armed.
+    const ARM_BLANK_MS = 250;
+
     const WEIGHT_MIN_KG = 30;
     const WEIGHT_MAX_KG = 250;
     const WEIGHT_STEP_KG = 1;
