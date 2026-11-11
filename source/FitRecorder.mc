@@ -47,22 +47,33 @@ class FitRecorder {
     }
 
     private function _createSession() as ActivityRecording.Session? {
-        // Garmin's own Jump Rope app records as Training > Cardio Training
-        // with the profile name "Jump Rope". Recording sport 84 makes the
-        // watch firmware write its own total_cycles, which Garmin Connect
-        // shows as Total Reps and which drifts away from this app's count.
+        // Sport 84 is "jump_rope". It gives the activity the Jump Rope type,
+        // icon and badge credit in Garmin Connect. Cardio training made the
+        // watch write total_cycles as strides, so its native count came out
+        // at half the app's jump count.
         try {
             return ActivityRecording.createSession({
+                :name => "Jump Rope",
+                :sport => 84 as Activity.Sport,
+                :subSport => Activity.SUB_SPORT_GENERIC
+            });
+        } catch (e) {
+            System.println("Jump Rope sport rejected: " + e.getErrorMessage());
+        }
+
+        // Fall back to cardio training, then HIIT, if the firmware rejects 84.
+        try {
+            var cardio = ActivityRecording.createSession({
                 :name => "Jump Rope",
                 :sport => Activity.SPORT_TRAINING,
                 :subSport => Activity.SUB_SPORT_CARDIO_TRAINING
             });
-        } catch (e) {
-            System.println("Cardio session rejected: " + e.getErrorMessage());
+            _fallbackSport = true;
+            return cardio;
+        } catch (e2) {
+            System.println("Cardio session rejected: " + e2.getErrorMessage());
         }
 
-        // If the cardio sub-sport is rejected, HIIT is the next best choice:
-        // it also avoids the watch's jump-rope rep counter.
         try {
             var hiit = ActivityRecording.createSession({
                 :name => "Jump Rope",
@@ -71,22 +82,8 @@ class FitRecorder {
             });
             _fallbackSport = true;
             return hiit;
-        } catch (e2) {
-            System.println("HIIT session rejected: " + e2.getErrorMessage());
-        }
-
-        // Last resort: keep the jump-rope activity type, even though the
-        // native rep counter may come back with it.
-        try {
-            var jumpRope = ActivityRecording.createSession({
-                :name => "Jump Rope",
-                :sport => 84 as Activity.Sport,
-                :subSport => Activity.SUB_SPORT_GENERIC
-            });
-            _fallbackSport = true;
-            return jumpRope;
         } catch (e3) {
-            System.println("Jump Rope sport rejected: " + e3.getErrorMessage());
+            System.println("HIIT session rejected: " + e3.getErrorMessage());
         }
         return null;
     }
@@ -147,6 +144,9 @@ class FitRecorder {
                 System.println("FIT addLap failed: " + e.getErrorMessage());
             }
         }
+        // The system adds a final lap when the session is saved. Clear the
+        // value so that last lap does not repeat the set that just closed.
+        _setNumberField(_lapJumpField, 0);
     }
 
     public function finish(jumps as Number, bestStreak as Number, avgCadence as Number, sets as Number, avgHr as Number, maxHr as Number) as Boolean {

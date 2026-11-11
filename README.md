@@ -1,6 +1,6 @@
 # Jump Rope
 
-A Connect IQ watch app for the Garmin Instinct E 40 mm that counts vertical jumps from wrist motion, tracks sets and rest periods, and records the workout as a Cardio Training activity named **Jump Rope**.
+A Connect IQ watch app for the Garmin Instinct E 40 mm that counts vertical jumps from wrist motion, tracks sets and rest periods, and records the workout as a **Jump Rope** activity.
 
 The app runs entirely on the watch. It does not require a phone connection or network access during a workout.
 
@@ -233,16 +233,18 @@ Rest arming uses horizontal acceleration after gravity removal.
 
 ## FIT recording
 
-When activity saving is enabled, the app records a Training > Cardio Training activity with the profile name **Jump Rope**. This is the same shape Garmin's own Jump Rope app uses, and it keeps the watch firmware from adding a separate rep counter.
+When activity saving is enabled, the app records a **Jump Rope** activity (FIT sport `84`), so the workout gets the Jump Rope type, icon, and badge credit in Garmin Connect.
 
 - Session fields: Jump Count, Best Streak, Avg Cadence, Sets, Avg HR, Max HR.
 - Record field: Cadence, shown as a jumps-per-minute chart.
 - Lap field: Set Jumps, with one lap for each completed set.
-- Fallbacks: HIIT, then sport `84` (`jump_rope`), if the firmware rejects cardio training.
+- Fallbacks: Cardio Training, then HIIT, if the firmware rejects sport `84`.
 
-The labels and display options for those fields live in `resources/fitfields.xml`. Garmin Connect reads that metadata from apps installed through the Connect IQ Store, so a sideloaded build still writes every field to the FIT file but Connect will not show them. The watch screen always shows the app's own count.
+The watch also writes its own `total_cycles` value for this sport. In jump rope that counter tracks cycles (two footfalls), so it comes out at about half the app's Jump Count; Garmin Connect labels it Total Reps. The app writes Jump Count at session level and Set Jumps for each lap.
 
-Connect lists the workout as Cardio Training with the name **Jump Rope**. Changing the activity type to Jump Rope in Connect can hide the app's custom fields.
+The app uses the watch's own calorie count when the device provides it, so the calorie number on the watch matches the activity's `total_calories` in Connect. If the device does not report calories, the app falls back to its MET estimate.
+
+The labels and display options for the custom fields live in `resources/fitfields.xml`. Garmin Connect reads that metadata from apps installed through the Connect IQ Store, so a sideloaded build still writes every field to the FIT file but Connect will not show the custom fields. The native Total Reps still appears.
 
 ## Privacy
 
@@ -250,7 +252,7 @@ Connect lists the workout as Cardio Training with the name **Jump Rope**. Changi
 - No analytics or advertising.
 - Settings and best records are stored on the watch.
 - Activities are recorded through Garmin’s activity APIs and sync through Garmin Connect.
-- The `UserProfile` permission is used only to read the profile weight for the calorie estimate.
+- The `UserProfile` permission is used only to read the profile weight for the fallback calorie estimate.
 
 Heart rate and calorie values are estimates and are not medical measurements.
 
@@ -322,15 +324,14 @@ The suite passes 8 of 8 tests.
 
 ### Garmin Connect shows a different count
 
-The app records as Cardio Training on purpose. Recording sport 84 made the watch firmware write its own `total_cycles`, which Connect displayed as Total Reps. That was the watch's counter, not the app's, and in two field tests it differed from the app by up to 36 jumps.
+A Jump Rope activity has two counters: the watch's native `total_cycles` and the app's Jump Count.
 
-With the current build Connect uses the app's **Jump Count** and **Set Jumps** fields once the app is installed from the Connect IQ Store. A private beta is enough. Sideloaded builds do not get the field display metadata, so Connect may show no jump count for those activities; check the watch screen or the FIT file instead.
+- `total_cycles` is the watch's cycle counter. A jump-rope cycle is two footfalls, so it lands at roughly half the jump count. Connect shows this value as **Total Reps**.
+- Jump Count is the app's own count, written at session level. Set Jumps is written per lap.
 
-To install a beta:
+For example, a 202-jump workout produced `total_cycles = 103`. Halving the app count would make the two agree, but it would also report half the real jumps and half the real cadence. The detector counts the jumps; the native counter is measuring cycles.
 
-1. Upload the built `.iq` as a testing app in the Connect IQ developer dashboard.
-2. Install it on the watch through the Connect IQ phone app.
-3. Record a workout and confirm that Connect shows Jump Count and Set Jumps.
+The app marks Jump Count as the session's equivalent counter in its FIT metadata. Garmin Connect only reads that metadata for apps installed from the Connect IQ Store, so a private beta install is needed to see **Jump Count** in Connect. A sideloaded build writes the field to the FIT file but Connect does not display it; check the watch summary or the FIT file instead.
 
 ## License
 

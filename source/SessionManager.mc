@@ -1,3 +1,4 @@
+import Toybox.Activity;
 import Toybox.Attention;
 import Toybox.Lang;
 import Toybox.Sensor;
@@ -29,6 +30,8 @@ class SessionManager {
     private var _sensorsOn as Boolean = false;
     private var _sensorError as String? = null;
     private var _saved as Boolean = false;
+    private var _nativeCalories as Number = -1;
+    private var _lastCalorieSample as Number = 0;
 
     // Rest, set and active-time tracking.
     private var _restTotalMs as Number = 0;
@@ -87,6 +90,8 @@ class SessionManager {
         _pausedAt = 0;
         _sensorError = null;
         _saved = false;
+        _nativeCalories = -1;
+        _lastCalorieSample = 0;
         _nextMilestone = settings.vibeEvery;
 
         _restTotalMs = 0;
@@ -245,6 +250,9 @@ class SessionManager {
 
     public function save() as Boolean {
         _finalizeCurrentSet(System.getTimer());
+        // Capture the final watch calorie count before the activity session
+        // is stopped and saved.
+        _readNativeCalories();
 
         if (getJumpCount() == 0) {
             // Starting and immediately finishing should not create an empty
@@ -373,6 +381,7 @@ class SessionManager {
         if (_state != AppConstants.STATE_RUNNING || detector == null) {
             return;
         }
+        _sampleNativeCalories();
         if (!(sensorData has :accelerometerData)) {
             return;
         }
@@ -659,6 +668,13 @@ class SessionManager {
     }
 
     public function getCalories() as Number {
+        // Prefer the watch's own activity calorie count so the watch and
+        // Garmin Connect show the same number. Fall back to the MET estimate
+        // only if the device does not expose calories.
+        if (_nativeCalories >= 0) {
+            return _nativeCalories;
+        }
+
         var weight = 70;
         if (_settings != null) {
             weight = _settings.weightKg;
@@ -922,6 +938,29 @@ class SessionManager {
             System.println("HR stop failed: " + e.getErrorMessage());
         }
         _sensorsOn = false;
+    }
+
+    private function _sampleNativeCalories() as Void {
+        var now = System.getTimer();
+        if (now - _lastCalorieSample < 1000) {
+            return;
+        }
+        _lastCalorieSample = now;
+        _readNativeCalories();
+    }
+
+    private function _readNativeCalories() as Void {
+        try {
+            var info = Activity.getActivityInfo();
+            if (info != null && info.calories != null) {
+                var kcal = info.calories as Number;
+                if (kcal >= 0) {
+                    _nativeCalories = kcal;
+                }
+            }
+        } catch (e) {
+            // Keep the MET estimate if this device does not report calories.
+        }
     }
 
     private function _updateHeartRate(hr as Number) as Void {
