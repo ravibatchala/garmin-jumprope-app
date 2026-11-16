@@ -1,8 +1,12 @@
-# Jump Rope
+# Rope Jumps
 
-A Connect IQ app for the Garmin Instinct E 40 mm. It counts jumps from wrist motion, keeps track of sets and rest, and saves the workout as a Jump Rope activity in Garmin Connect.
+A jump rope counter for the Garmin Instinct E 40 mm. It counts jumps from wrist motion, keeps track of sets and rest, and saves the workout as a Jump Rope activity in Garmin Connect.
 
 It runs on the watch. No phone or network is needed during a workout.
+
+**Free on the Connect IQ Store:** [apps.garmin.com/apps/63739fad-a779-416b-aad3-15b59681dd22](https://apps.garmin.com/apps/63739fad-a779-416b-aad3-15b59681dd22)
+
+On the watch it is listed as **Jump Rope**.
 
 ## Screenshots
 
@@ -21,18 +25,13 @@ It runs on the watch. No phone or network is needed during a workout.
 - Ten-jump calibration when the default threshold does not fit.
 - Saves as a Jump Rope activity (FIT sport 84, with cardio and HIIT as fallbacks).
 
-## Device
-
-Garmin Instinct E 40 mm (`instincte40mm`) only, Connect IQ 5.1.0 or later.
-
 ## Install
 
-```sh
-./tools/build.sh
-./tools/install.sh
-```
+1. Open the [store listing](https://apps.garmin.com/apps/63739fad-a779-416b-aad3-15b59681dd22) on your phone, or search for **Rope Jumps** in the Connect IQ app inside Garmin Connect.
+2. Install it to your Instinct E 40 mm.
+3. Start **Jump Rope** from the watch's app list.
 
-`install.sh` copies `build/JumpRope.prg` to the watch as `GARMIN/APPS/JUMPROPE.PRG` when the watch is mounted. Close Garmin Express first, remove any older jump-rope `.PRG`, then eject the watch and start **Jump Rope** from the app list. If the watch is not mounted, copy the file there yourself.
+Garmin Instinct E 40 mm (`instincte40mm`), Connect IQ 5.1.0 or later.
 
 ## Controls
 
@@ -94,17 +93,11 @@ Garmin Connect's Total Reps is the watch's own counter, not the app's Jumps, so 
 
 - **Too many jumps:** lower Sensitivity. **Missing jumps:** raise it, wear the watch snug, or recalibrate.
 - **`SAVE FAILED`:** keep Save activity on, check storage, and press Enter to retry.
-- **App missing from the list:** confirm `GARMIN/APPS/JUMPROPE.PRG`, remove old copies, and reboot the watch.
+- **App not on the watch:** check that the store listing shows your watch, then sync the watch with Garmin Connect. If it still does not appear, reinstall it from the Connect IQ app.
 
-## Build and test
+## Development
 
-```sh
-./tools/build.sh   # build the .prg
-./tools/test.sh    # 8 unit tests
-./tools/run.sh     # open in the simulator
-```
-
-The simulator cannot produce wrist motion, so jump detection, heart rate, and saved activities need the watch.
+Build, test, and sideload instructions are in [DEVELOPING.md](DEVELOPING.md).
 
 ## Privacy
 
